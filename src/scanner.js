@@ -2,6 +2,7 @@ const simpleGit = require('simple-git');
 const path = require('path');
 const fs = require('fs');
 const StatsCalculator = require('./stats');
+const LanguageDetector = require('./languages');
 
 class GitScanner {
   constructor(repoPath) {
@@ -92,10 +93,14 @@ class GitScanner {
       const ext = path.extname(file).toLowerCase() || 'no-extension';
       fileStats.byExtension[ext] = (fileStats.byExtension[ext] || 0) + 1;
 
-      // Map extensions to languages
-      const language = this.getLanguageFromExtension(ext);
-      if (language) {
-        fileStats.languages[language] = (fileStats.languages[language] || 0) + 1;
+      // Enhanced language detection
+      const langInfo = LanguageDetector.detectLanguage(file);
+      if (langInfo) {
+        fileStats.languages[langInfo.name] = (fileStats.languages[langInfo.name] || 0) + 1;
+        
+        // Track by category too
+        if (!fileStats.categories) fileStats.categories = {};
+        fileStats.categories[langInfo.category] = (fileStats.categories[langInfo.category] || 0) + 1;
       }
 
       // Count lines (for text files only)
